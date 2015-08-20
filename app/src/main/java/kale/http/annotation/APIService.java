@@ -19,19 +19,19 @@ public interface APIService {
     Observable get011();
 
     @HttpGet(url = TEST_API, model = MainActivity.class)
-    Observable get021();
+    Observable<MainActivity> get021();
 
     @HttpGet(url = TEST_API, model = MainActivity.class)
-    Observable<MainActivity> get031(String test_api00, String dd_color, String atdsfslass);
+    Observable<MainActivity> get031(String test_api00, String color, String hehe);
 
-    @HttpGet(url = "just/tttt" + "?user=123&name=abc", model = MainActivity.class)
-    Observable<MainActivity> get041(String test_api00, String dd_color, String dfdf2);
+    @HttpGet(url = "just/tttt" + "?user=123&name=abc", model = StringBuilder.class)
+    Observable<StringBuilder> get041(String test_api00, String rgb_color, String test);
 
     @HttpPost(url = TEST_API)
     Observable post011();
 
     @HttpPost(url = TEST_API, model = MainActivity.class)
-    Observable post021();
+    Observable<MainActivity> post021();
 
     @HttpPost(url = TEST_API + "?user=aaaa3&name=kale")
     Observable post031();

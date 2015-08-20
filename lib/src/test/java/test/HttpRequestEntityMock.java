@@ -1,4 +1,4 @@
-package kale.net.http;
+package test;
 
 import java.util.HashMap;
 
@@ -8,11 +8,11 @@ import rx.Observable;
 /**
  * 应该生成的类和方法，放在这里做比对。
  */
-public class HttpRequestEntity implements Cloneable, java.io.Serializable {
+public class HttpRequestEntityMock implements Cloneable, java.io.Serializable {
 
     private HttpRequest mHttpRequest;
 
-    public HttpRequestEntity(HttpRequest httpRequest) {
+    public HttpRequestEntityMock(HttpRequest httpRequest) {
         mHttpRequest = httpRequest;
     }
 

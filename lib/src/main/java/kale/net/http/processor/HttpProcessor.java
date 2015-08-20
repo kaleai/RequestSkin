@@ -43,9 +43,9 @@ public class HttpProcessor extends AbstractProcessor {
     private static final String TAG = "[ " + HttpProcessor.class.getSimpleName() + " ]:";
 
 
-    private static final String PACKAGE_NAME = "kale.net.http";
+    public static final String PACKAGE_NAME = "kale.net.http";
 
-    private static final String CLASS_NAME = "HttpRequestEntity";
+    public static final String CLASS_NAME = "HttpRequestEntity";
 
     private String PARENT_CLASS_NAME = "java.io.Serializable";
 

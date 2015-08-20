@@ -2,12 +2,14 @@ package kale.http.annotation;
 
 import java.util.HashMap;
 
+import kale.net.http.impl.HttpRequest;
 import rx.Observable;
 
 /**
  * @author Jack Tony
  * @date 2015/8/17
- * 原本的网络请求框架实现HttpRequest接口即可得到传递过来的请求的数据
+ * 原本的网络请求框架实现HttpRequest接口即可得到传递过来的请求的数据.
+ * 
  * 这个类模拟的是原先的网络框架
  */
 public class MyHttpLib implements HttpRequest {

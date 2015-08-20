@@ -21,15 +21,20 @@ android {
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
 }
+
+
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile project(':lib')
     
-    //debugCompile project(':lib')
-
     compile 'com.android.support:appcompat-v7:23.0.0'
     compile 'io.reactivex:rxandroid:1.0.1'
     
-    //testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.12'
 }

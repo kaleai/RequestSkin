@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * @date 2015/8/16
  */
 @Documented
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 public @interface ApiInterface {
 

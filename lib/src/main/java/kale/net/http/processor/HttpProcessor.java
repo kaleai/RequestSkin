@@ -12,15 +12,12 @@ import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
@@ -29,6 +26,7 @@ import kale.net.http.annotation.ApiInterface;
 import kale.net.http.annotation.HttpGet;
 import kale.net.http.annotation.HttpPost;
 import kale.net.http.impl.HttpRequest;
+import kale.net.http.util.AnnotationSupportUtil;
 import kale.net.http.util.UrlUtil;
 
 
@@ -36,8 +34,6 @@ import kale.net.http.util.UrlUtil;
  * @author Jack Tony
  * @date 2015/8/16
  */
-@SupportedAnnotationTypes({"kale.net.http.annotation.HttpGet", "kale.net.http.annotation.HttpPost", "kale.net.http.annotation.ApiInterface"})
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class HttpProcessor extends AbstractProcessor {
 
     private static final String TAG = "[ " + HttpProcessor.class.getSimpleName() + " ]:";
@@ -48,8 +44,6 @@ public class HttpProcessor extends AbstractProcessor {
     public static final String CLASS_NAME = "HttpRequestEntity";
 
     private String PARENT_CLASS_NAME = "java.io.Serializable";
-
-    private Elements elementUtils;
 
     public StringBuilder getStringBuilder() {
         return mStringBuilder;
@@ -76,6 +70,8 @@ public class HttpProcessor extends AbstractProcessor {
         mStringBuilder = new StringBuilder(classBlockStr);
     }
 
+    private Elements elementUtils;
+
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
@@ -97,14 +93,11 @@ public class HttpProcessor extends AbstractProcessor {
                 } else if (e.getKind() == ElementKind.METHOD) {
                     ExecutableElement method = (ExecutableElement) e;
                     if (method.getAnnotation(HttpPost.class) != null) {
-                        //isPost = true;
                         handlerHttp(mStringBuilder, e, method, true);
                     } else {
-                        //isPost = false;
                         handlerHttp(mStringBuilder, e, method, false);
                     }
                 }
-
             }
         }
         mStringBuilder.append("\n}");
@@ -112,7 +105,20 @@ public class HttpProcessor extends AbstractProcessor {
         return true;
     }
 
-    public StringBuilder createClsBlock(String interFaceName,StringBuilder sb) {
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        return new AnnotationSupportUtil()
+                .support(HttpGet.class)
+                .support(HttpPost.class)
+                .support(ApiInterface.class).get();
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latestSupported();
+    }
+
+    public StringBuilder createClsBlock(String interFaceName, StringBuilder sb) {
         int start = sb.indexOf(PARENT_CLASS_NAME);
         return sb.insert(start, interFaceName + ", ");
     }
@@ -120,79 +126,83 @@ public class HttpProcessor extends AbstractProcessor {
     public void handlerHttp(StringBuilder sb, Element ele, ExecutableElement method, boolean isPost) {
         String url;
         String modelName;
-        if (isPost) {
-            HttpPost httpPost = ele.getAnnotation(HttpPost.class);
-            url = httpPost.url();
-            try {
-                modelName = httpPost.model().getName();
-            } catch (MirroredTypeException ex) {
-                modelName = ex.getTypeMirror().toString();
-            }
-        } else {
-            HttpGet httpGet = ele.getAnnotation(HttpGet.class);
-            url = httpGet.url();
-            try {
-                modelName = httpGet.model().getName();
-            } catch (MirroredTypeException ex) {
-                modelName = ex.getTypeMirror().toString();
-            }
-        }
 
+        log("Working on method: " + method.getSimpleName());
+
+        if (isPost) {
+            url = ele.getAnnotation(HttpPost.class).value();
+        } else {
+            url = ele.getAnnotation(HttpGet.class).value();
+        }
         if (url.equals("")) {
-            fatalError("Url is null");
+            fatalError("Url is empty");
             return;
         }
-        log("Working on method: " + method.getSimpleName());
-        Map<String, String> defaultParams = UrlUtil.getParams(url);
-        List<String> customParams = getCustomParams(method);
-        if (modelName.equals(HttpProcessor.class.getName())) {
-            modelName = null;
-        }
 
-        if (modelName != null && modelName.contains("<any?>")) {
-            modelName = modelName.replace("<any?>", UrlUtil.url2packageName(url));
-        }
+        // model name
+        modelName = getModelName(url, method.getReturnType().toString());
+        // default params
+        Map<String, String> defaultParams = UrlUtil.getParams(url);
+        // custom params
+        List<String> customParams = getCustomParams(method);
+
         url = UrlUtil.getRealUrl(url);
         if (isPost) {
             sb.append(createPostMethodBlock(method.getSimpleName().toString(), url, defaultParams, customParams, modelName));
         } else {
             sb.append(createGetMethodBlock(method.getSimpleName().toString(), url, defaultParams, customParams, modelName));
         }
+
         log("Parse method: " + method.getSimpleName() + " completed");
     }
 
+    private String getModelName(String url, String modelName) {
+        if (modelName.contains("<")) {
+            modelName = modelName.substring(modelName.indexOf("<") + 1, modelName.lastIndexOf(">"));
+        }
+        if (!modelName.contains(".")) {
+            // if this model without a packageName,
+            // it means the model is generate by system.We must give a package name for it.
+            modelName = UrlUtil.url2packageName(url) + "." + modelName;
+        }
+        return modelName;
+    }
 
     private List<String> getCustomParams(ExecutableElement method) {
-        List<String> customParams = new ArrayList<String>();
+        List<String> customParams = new ArrayList<>();
         List<? extends VariableElement> parameters = method.getParameters();
         for (VariableElement parameter : parameters) {
+            // Just support for param which type is string
+            String paramTypeString = parameter.getEnclosingElement().toString();
+            paramTypeString = paramTypeString.substring(paramTypeString.indexOf("(") + 1, paramTypeString.lastIndexOf(")"));
+            for (String type : paramTypeString.split(",")) {
+                if (!"java.lang.String".equals(type)) {
+                    fatalError("Method's params must be String.-> at " + parameter.getEnclosingElement());
+                    return customParams;
+                }
+            }
             customParams.add(parameter.getSimpleName().toString());
         }
         return customParams;
     }
 
-    public StringBuilder createPostMethodBlock( String methodName,  String url,
-             Map<String, String> defaultParams,  List<String> customParams, String modelName) {
+    public StringBuilder createPostMethodBlock(String methodName, String url,
+            Map<String, String> defaultParams, List<String> customParams, String modelName) {
 
         StringBuilder sb = new StringBuilder();
         if (customParams.size() == 0 && defaultParams.size() == 0) {
             String functionBlockStr =
-                    "    public Observable " + methodName + "() {\n"
-                            + "        return (Observable) mHttpRequest.doPost({url}, {cls});\n"
+                              "    public Observable " + methodName + "() {\n"
+                            + "        return (Observable) mHttpRequest.doPost({url}, null, {cls});\n"
                             + "    }\n\n";
             functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "\"");
-            if (modelName != null) {
-                functionBlockStr = functionBlockStr.replace("{cls}", modelName + ".class");
-            } else {
-                functionBlockStr = functionBlockStr.replace(", {cls}", "");
-            }
+            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
             return sb.append(functionBlockStr);
-        }
-        else {
+        } else {
             String functionBlockStr =
-                    "    public Observable " + methodName + "({params}) {\n"
+                              "    public Observable " + methodName + "({params}) {\n"
                             + "        HashMap<String, String> map = new HashMap<>();\n"
-                            + "        {(map.put(��)}\n"
+                            + "        {(map.put(...)}\n"
                             + "        return (Observable) mHttpRequest.doPost({url}, map, {cls});\n"
                             + "    }\n\n";
             if (customParams.size() == 0) {
@@ -207,7 +217,7 @@ public class HttpProcessor extends AbstractProcessor {
                 functionBlockStr = functionBlockStr.replace("{params}", paramsSb.toString());
             }
 
-            // �滻mapֵ
+            // create map block
             StringBuilder mapSb = new StringBuilder();
             for (String customParam : customParams) {
                 mapSb.append("        ")
@@ -219,40 +229,30 @@ public class HttpProcessor extends AbstractProcessor {
                         .append(defaultParam.getKey()).append("\"").append(", \"").append(defaultParam.getValue()).append("\");")
                         .append("\n");
             }
-            functionBlockStr = functionBlockStr.replace("        {(map.put(��)}", mapSb.toString());
+            functionBlockStr = functionBlockStr.replace("        {(map.put(...)}", mapSb.toString());
 
             functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "\"");
-            if (modelName != null) {
-                functionBlockStr = functionBlockStr.replace("{cls}", modelName + ".class");
-            } else {
-                functionBlockStr = functionBlockStr.replace(", {cls}", "");
-            }
+            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
             return sb.append(functionBlockStr);
         }
     }
 
-    public StringBuilder createGetMethodBlock( String methodName,  String url,
-             Map<String, String> defaultParams,  List<String> customParams, String modelName) {
+    public StringBuilder createGetMethodBlock(String methodName, String url,
+            Map<String, String> defaultParams, List<String> customParams, String modelName) {
 
         StringBuilder sb = new StringBuilder();
         if (customParams.size() == 0 && defaultParams.size() == 0) {
             String functionBlockStr =
-                    "    public Observable " + methodName + "() {\n"
+                              "    public Observable " + methodName + "() {\n"
                             + "        return (Observable) mHttpRequest.doGet({url}, {cls});\n"
                             + "    }\n\n";
 
             functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "\"");
-            if (modelName != null) {
-                functionBlockStr = functionBlockStr.replace("{cls}", modelName + ".class");
-            } else {
-                functionBlockStr = functionBlockStr.replace(", {cls}", "");
-
-            }
+            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
             return sb.append(functionBlockStr);
-        }
-        else {
+        } else {
             String functionBlockStr =
-                    "    public Observable " + methodName + "({params}) {\n"
+                              "    public Observable " + methodName + "({params}) {\n"
                             + "        return (Observable) mHttpRequest.doGet({url}\n"
                             + "                {param=value}                , {cls});\n"
                             + "    }\n\n";
@@ -278,11 +278,7 @@ public class HttpProcessor extends AbstractProcessor {
             functionBlockStr = functionBlockStr.replace("                {param=value}", paramSb.toString());
 
             functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "?\"");
-            if (modelName != null) {
-                functionBlockStr = functionBlockStr.replace("{cls}", modelName + ".class");
-            } else {
-                functionBlockStr = functionBlockStr.replace("                , {cls}", "");
-            }
+            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
             return sb.append(functionBlockStr);
         }
     }
@@ -299,7 +295,7 @@ public class HttpProcessor extends AbstractProcessor {
             osw.write(content, 0, content.length());
 
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             //fatalError(e.getMessage());
         } finally {
             try {
@@ -321,7 +317,7 @@ public class HttpProcessor extends AbstractProcessor {
     }
 
     private void fatalError(String msg) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, TAG + " FATAL ERROR: " + msg);
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, TAG + msg);
     }
 
 }

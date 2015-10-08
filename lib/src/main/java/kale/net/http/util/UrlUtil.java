@@ -2,6 +2,7 @@ package kale.net.http.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @date 2015/8/5
@@ -13,6 +14,7 @@ public class UrlUtil {
      * /user/test/ - > user.test
      */
     public static String url2packageName(String url) {
+        url = getRealUrl(url);
         String packageName = url.replaceAll("/", ".");
         if (packageName.startsWith(".")) {
             packageName = packageName.substring(1);
@@ -25,7 +27,7 @@ public class UrlUtil {
 
     public static String getRealUrl(String url) {
         if (url.contains("?")) {
-            return url = url.substring(0, url.indexOf("?"));
+            return url.substring(0, url.indexOf("?"));
         } else {
             return url;
         }
@@ -63,7 +65,7 @@ public class UrlUtil {
     public static Map<String, String> getParams(String URL) {
         Map<String, String> mapRequest = new HashMap<String, String>();
 
-        String[] arrSplit = null;
+        String[] arrSplit;
 
         String strUrlParam = TruncateUrlPage(URL);
         if (strUrlParam == null) {
@@ -71,13 +73,13 @@ public class UrlUtil {
         }
         arrSplit = strUrlParam.split("[&]");
         for (String strSplit : arrSplit) {
-            String[] arrSplitEqual = null;
+            String[] arrSplitEqual;
             arrSplitEqual = strSplit.split("[=]");
 
             if (arrSplitEqual.length > 1) {
                 mapRequest.put(arrSplitEqual[0], arrSplitEqual[1]);
             } else {
-                if (arrSplitEqual[0] != "") {
+                if (!Objects.equals(arrSplitEqual[0], "")) {
                     mapRequest.put(arrSplitEqual[0], "");
                 }
             }

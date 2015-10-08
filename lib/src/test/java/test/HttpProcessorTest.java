@@ -185,7 +185,7 @@ public class HttpProcessorTest {
         
         StringBuilder sb = processor.createPostMethodBlock("testPost00", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
         assertEquals("    public Observable testPost00() {\n"
-                + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", java.lang.Object.class);\n"
+                + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", null, java.lang.Object.class);\n"
                 + "    }\n"
                 + "\n",sb.toString());
     }

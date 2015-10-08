@@ -49,7 +49,7 @@ public class HttpRequestEntityMock implements Cloneable, java.io.Serializable {
     }
 
     public Observable testPost00() {
-        return (Observable) mHttpRequest.doPost("http://www.baidu.com", Object.class);
+        return (Observable) mHttpRequest.doPost("http://www.baidu.com", null, Object.class);
     }
 
     public Observable testPost01() {

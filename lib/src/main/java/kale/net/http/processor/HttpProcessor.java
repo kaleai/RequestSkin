@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +27,7 @@ import kale.net.http.annotation.HttpGet;
 import kale.net.http.annotation.HttpPost;
 import kale.net.http.impl.HttpRequest;
 import kale.net.http.util.AnnotationSupportUtil;
+import kale.net.http.util.HttpCodeSnippetUtil;
 import kale.net.http.util.UrlUtil;
 
 
@@ -37,7 +38,6 @@ import kale.net.http.util.UrlUtil;
 public class HttpProcessor extends AbstractProcessor {
 
     private static final String TAG = "[ " + HttpProcessor.class.getSimpleName() + " ]:";
-
 
     public static final String PACKAGE_NAME = "kale.net.http";
 
@@ -124,11 +124,9 @@ public class HttpProcessor extends AbstractProcessor {
     }
 
     public void handlerHttp(StringBuilder sb, Element ele, ExecutableElement method, boolean isPost) {
-        String url;
-        String modelName;
-
         log("Working on method: " + method.getSimpleName());
 
+        String url;
         if (isPost) {
             url = ele.getAnnotation(HttpPost.class).value();
         } else {
@@ -138,19 +136,16 @@ public class HttpProcessor extends AbstractProcessor {
             fatalError("Url is empty");
             return;
         }
-
-        // model name
-        modelName = getModelName(url, method.getReturnType().toString());
-        // default params
+        String methodName = method.getSimpleName().toString();
+        String modelName = getModelName(url, method.getReturnType().toString());
+        Map<String, String> customParams = getCustomParams(method);
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-        // custom params
-        List<String> customParams = getCustomParams(method);
-
         url = UrlUtil.getRealUrl(url);
+        
         if (isPost) {
-            sb.append(createPostMethodBlock(method.getSimpleName().toString(), url, defaultParams, customParams, modelName));
+            sb.append(HttpCodeSnippetUtil.createPostSnippet(methodName, url, customParams, defaultParams, modelName));
         } else {
-            sb.append(createGetMethodBlock(method.getSimpleName().toString(), url, defaultParams, customParams, modelName));
+            sb.append(HttpCodeSnippetUtil.createGetSnippet(methodName, url, customParams, defaultParams, modelName));
         }
 
         log("Parse method: " + method.getSimpleName() + " completed");
@@ -168,8 +163,8 @@ public class HttpProcessor extends AbstractProcessor {
         return modelName;
     }
 
-    private List<String> getCustomParams(ExecutableElement method) {
-        List<String> customParams = new ArrayList<>();
+    private Map<String, String> getCustomParams(ExecutableElement method) {
+        Map<String, String> customParams = new LinkedHashMap<>();
         List<? extends VariableElement> parameters = method.getParameters();
         for (VariableElement parameter : parameters) {
             // Just support for param which type is string
@@ -178,110 +173,14 @@ public class HttpProcessor extends AbstractProcessor {
             for (String type : paramTypeString.split(",")) {
                 if (!"java.lang.String".equals(type)) {
                     fatalError("Method's params must be String.-> at " + parameter.getEnclosingElement());
-                    return customParams;
+                    break;
                 }
             }
-            customParams.add(parameter.getSimpleName().toString());
+            customParams.put(parameter.getSimpleName().toString(), parameter.getSimpleName().toString());
         }
         return customParams;
     }
 
-    public StringBuilder createPostMethodBlock(String methodName, String url,
-            Map<String, String> defaultParams, List<String> customParams, String modelName) {
-
-        StringBuilder sb = new StringBuilder();
-        if (customParams.size() == 0 && defaultParams.size() == 0) {
-            String functionBlockStr =
-                              "    public Observable " + methodName + "() {\n"
-                            + "        return (Observable) mHttpRequest.doPost({url}, null, {cls});\n"
-                            + "    }\n\n";
-            functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "\"");
-            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
-            return sb.append(functionBlockStr);
-        } else {
-            String functionBlockStr =
-                              "    public Observable " + methodName + "({params}) {\n"
-                            + "        HashMap<String, String> map = new HashMap<>();\n"
-                            + "        {(map.put(...)}\n"
-                            + "        return (Observable) mHttpRequest.doPost({url}, map, {cls});\n"
-                            + "    }\n\n";
-            if (customParams.size() == 0) {
-                functionBlockStr = functionBlockStr.replace("{params}", "");
-            } else {
-                StringBuilder paramsSb = new StringBuilder();
-                for (String customParam : customParams) {
-                    paramsSb.append("String ").append(customParam).append(", ");
-                }
-                paramsSb.deleteCharAt(paramsSb.length() - 1);
-                paramsSb.deleteCharAt(paramsSb.length() - 1);
-                functionBlockStr = functionBlockStr.replace("{params}", paramsSb.toString());
-            }
-
-            // create map block
-            StringBuilder mapSb = new StringBuilder();
-            for (String customParam : customParams) {
-                mapSb.append("        ")
-                        .append("map.put(" + "\"").append(customParam).append("\"").append(", ").append(customParam).append(");").append("\n");
-            }
-            for (Map.Entry<String, String> defaultParam : defaultParams.entrySet()) {
-                mapSb.append("        ")
-                        .append("map.put(" + "\"")
-                        .append(defaultParam.getKey()).append("\"").append(", \"").append(defaultParam.getValue()).append("\");")
-                        .append("\n");
-            }
-            functionBlockStr = functionBlockStr.replace("        {(map.put(...)}", mapSb.toString());
-
-            functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "\"");
-            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
-            return sb.append(functionBlockStr);
-        }
-    }
-
-    public StringBuilder createGetMethodBlock(String methodName, String url,
-            Map<String, String> defaultParams, List<String> customParams, String modelName) {
-
-        StringBuilder sb = new StringBuilder();
-        if (customParams.size() == 0 && defaultParams.size() == 0) {
-            String functionBlockStr =
-                              "    public Observable " + methodName + "() {\n"
-                            + "        return (Observable) mHttpRequest.doGet({url}, {cls});\n"
-                            + "    }\n\n";
-
-            functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "\"");
-            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
-            return sb.append(functionBlockStr);
-        } else {
-            String functionBlockStr =
-                              "    public Observable " + methodName + "({params}) {\n"
-                            + "        return (Observable) mHttpRequest.doGet({url}\n"
-                            + "                {param=value}                , {cls});\n"
-                            + "    }\n\n";
-            if (customParams.size() == 0) {
-                functionBlockStr = functionBlockStr.replace("{params}", "");
-            } else {
-                StringBuilder paramSb = new StringBuilder();
-                for (String customParam : customParams) {
-                    paramSb.append("String ").append(customParam).append(", ");
-                }
-                paramSb.deleteCharAt(paramSb.length() - 1);
-                paramSb.deleteCharAt(paramSb.length() - 1);
-                functionBlockStr = functionBlockStr.replace("{params}", paramSb.toString());
-            }
-            StringBuilder paramSb = new StringBuilder();
-            for (String customParam : customParams) {
-                paramSb.append("                + \"&").append(customParam).append("=\" + ").append(customParam).append("\n");
-            }
-            for (Map.Entry<String, String> defaultParam : defaultParams.entrySet()) {
-                paramSb.append("                + \"&").append(defaultParam.getKey()).append("=").append(defaultParam.getValue()).append("\"\n");
-            }
-            paramSb.deleteCharAt(paramSb.length() - 1);
-            functionBlockStr = functionBlockStr.replace("                {param=value}", paramSb.toString());
-
-            functionBlockStr = functionBlockStr.replace("{url}", "\"" + url + "?\"");
-            functionBlockStr = functionBlockStr.replace("{cls}", modelName != null ? modelName + ".class" : "null");
-            return sb.append(functionBlockStr);
-        }
-    }
 
     private void createClassFile(String PACKAGE_NAME, String clsName, String content) {
         //PackageElement pkgElement = elementUtils.getPackageElement("");

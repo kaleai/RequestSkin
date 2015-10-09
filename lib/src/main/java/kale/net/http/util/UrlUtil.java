@@ -1,6 +1,6 @@
 package kale.net.http.util;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -40,7 +40,7 @@ public class UrlUtil {
      */
     private static String TruncateUrlPage(String strURL) {
         String strAllParam = null;
-        String[] arrSplit = null;
+        String[] arrSplit;
 
         strURL = strURL.trim().toLowerCase();
 
@@ -63,7 +63,7 @@ public class UrlUtil {
      * @return url
      */
     public static Map<String, String> getParams(String URL) {
-        Map<String, String> mapRequest = new HashMap<String, String>();
+        Map<String, String> mapRequest = new LinkedHashMap<>();
 
         String[] arrSplit;
 

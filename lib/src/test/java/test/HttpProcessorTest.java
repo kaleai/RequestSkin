@@ -3,10 +3,12 @@ package test;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import kale.net.http.processor.HttpProcessor;
+import kale.net.http.util.HttpCodeSnippetUtil;
 import kale.net.http.util.UrlUtil;
 
 import static org.junit.Assert.assertEquals;
@@ -51,63 +53,61 @@ public class HttpProcessorTest {
     /**
      * custom 0
      * custom 0
-     * @throws Exception
      */
     @Test
     public void testGet00() throws Exception {
-        ArrayList<String> customParams = new ArrayList<>();
+        Map<String, String> customParams = new LinkedHashMap<>();
 
         String url = "http://www.baidu.com";
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createGetMethodBlock("testGet00", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        defaultParams.putAll(customParams);
+        
+        String sb = HttpCodeSnippetUtil.createGetSnippet("testGet00", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testGet00() {\n"
-                + "        return (Observable) mHttpRequest.doGet(\"http://www.baidu.com\", java.lang.Object.class);\n"
-                + "    }\n\n",sb.toString());
+                + "        return (Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
+                + "                , java.lang.Object.class);\n"
+                + "    }\n\n", sb);
     }
-    
+
     /**
      * custom 1
      * default 0
-     * @throws Exception
      */
     @Test
     public void testGet10() throws Exception {
-        ArrayList<String> customParams = new ArrayList<>();
-        customParams.add("user_id");
-
         String url = "http://www.baidu.com";
+        
+        Map<String, String> customParams = new LinkedHashMap<>();
+        putCustomParam(customParams, "user_id");
         Map<String, String> defaultParams = UrlUtil.getParams(url);
 
-        StringBuilder sb = processor.createGetMethodBlock("testGet10", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        String sb = HttpCodeSnippetUtil.createGetSnippet("testGet10", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testGet10(String user_id) {\n"
                 + "        return (Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
                 + "                + \"&user_id=\" + user_id                , java.lang.Object.class);\n"
-                + "    }\n\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
 
     /**
      * custom 2
      * default 1
-     * @throws Exception
      */
     @Test
     public void testGet21() throws Exception {
-        ArrayList<String> customParams = new ArrayList<>();
-        customParams.add("user_id");
-        customParams.add("test");
-        
+        Map<String, String> customParams = new LinkedHashMap<>();
+        putCustomParam(customParams, "user_id");
+        putCustomParam(customParams, "test");
+
         String url = "http://www.baidu.com";
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createGetMethodBlock("testGet21", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        
+        String sb = HttpCodeSnippetUtil.createGetSnippet("testGet21", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testGet21(String user_id, String test) {\n"
                 + "        return (Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
                 + "                + \"&user_id=\" + user_id\n"
                 + "                + \"&test=\" + test                , java.lang.Object.class);\n"
-                + "    }\n"
-                + "\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
     /**
@@ -116,17 +116,15 @@ public class HttpProcessorTest {
      */
     @Test
     public void testGet01() {
-        ArrayList<String> customParams = new ArrayList<>();
-
+        Map<String, String> customParams = new LinkedHashMap<>();
         String url = "http://www.baidu.com?user_id=123";
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createGetMethodBlock("testGet01", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        
+        String sb = HttpCodeSnippetUtil.createGetSnippet("testGet01", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testGet01() {\n"
                 + "        return (Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
                 + "                + \"&user_id=123\"                , java.lang.Object.class);\n"
-                + "    }\n"
-                + "\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
     /**
@@ -135,18 +133,17 @@ public class HttpProcessorTest {
      */
     @Test
     public void testGet02() {
-        ArrayList<String> customParams = new ArrayList<>();
-
+        Map<String, String> customParams = new HashMap<>();
         String url = "http://www.baidu.com/?user_id=123&name=jack";
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createGetMethodBlock("testGet02", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        defaultParams.putAll(customParams);
+        
+        String sb = HttpCodeSnippetUtil.createGetSnippet("testGet02", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testGet02() {\n"
                 + "        return (Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
                 + "                + \"&user_id=123\"\n"
                 + "                + \"&name=jack\"                , java.lang.Object.class);\n"
-                + "    }\n"
-                + "\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
     /**
@@ -155,18 +152,19 @@ public class HttpProcessorTest {
      */
     @Test
     public void testGet11() {
-        ArrayList<String> customParams = new ArrayList<>();
-        customParams.add("user_id");
-        
         String url = "http://www.baidu.com/?name=jack";
-        Map<String, String> defaultParams = UrlUtil.getParams(url);
+        
+        Map<String, String> customParams = new HashMap<>();
+        putCustomParam(customParams, "user_id");
 
-        StringBuilder sb = processor.createGetMethodBlock("testGet11", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        Map<String, String> defaultParams = UrlUtil.getParams(url);
+        
+        String sb = HttpCodeSnippetUtil.createGetSnippet("testGet11", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testGet11(String user_id) {\n"
                 + "        return (Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
                 + "                + \"&user_id=\" + user_id\n"
                 + "                + \"&name=jack\"                , java.lang.Object.class);\n"
-                + "    }\n\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
 
@@ -176,115 +174,106 @@ public class HttpProcessorTest {
      */
     @Test
     public void testPost00() {
-        HttpProcessor processor = new HttpProcessor();
-
-        ArrayList<String> customParams = new ArrayList<>();
-
         String url = "http://www.baidu.com/";
+        Map<String, String> customParams = new HashMap<>();
         Map<String, String> defaultParams = UrlUtil.getParams(url);
         
-        StringBuilder sb = processor.createPostMethodBlock("testPost00", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        String block = HttpCodeSnippetUtil.createPostSnippet("testPost00", "http://www.baidu.com", customParams, defaultParams,
+                Object.class.getName());
         assertEquals("    public Observable testPost00() {\n"
-                + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", null, java.lang.Object.class);\n"
-                + "    }\n"
-                + "\n",sb.toString());
+                + "        HashMap<String, String> map = new HashMap<>();\n"
+                + "\n"
+                + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", map, java.lang.Object.class);\n"
+                + "    }\n\n", block);
     }
 
     @Test
     public void testPost01() {
-        HttpProcessor processor = new HttpProcessor();
-
-        ArrayList<String> customParams = new ArrayList<>();
-
         String url = "http://www.baidu.com/?id=123";
+        Map<String, String> customParams = new HashMap<>();
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createPostMethodBlock("testPost01", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        
+        String block = HttpCodeSnippetUtil.createPostSnippet("testPost01", "http://www.baidu.com", customParams, defaultParams,
+                Object.class.getName());
         assertEquals("    public Observable testPost01() {\n"
                 + "        HashMap<String, String> map = new HashMap<>();\n"
                 + "        map.put(\"id\", \"123\");\n"
                 + "\n"
                 + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", map, java.lang.Object.class);\n"
-                + "    }\n\n",sb.toString());
+                + "    }\n\n", block);
     }
 
     @Test
     public void testPost02() {
-        HttpProcessor processor = new HttpProcessor();
-
-        ArrayList<String> customParams = new ArrayList<>();
-
         String url = "http://www.baidu.com/?id=123&name=jack";
+        Map<String, String> customParams = new HashMap<>();
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createPostMethodBlock("testPost02", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        
+        String sb = HttpCodeSnippetUtil.createPostSnippet("testPost02", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testPost02() {\n"
                 + "        HashMap<String, String> map = new HashMap<>();\n"
-                + "        map.put(\"name\", \"jack\");\n"
                 + "        map.put(\"id\", \"123\");\n"
+                + "        map.put(\"name\", \"jack\");\n"
                 + "\n"
                 + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", map, java.lang.Object.class);\n"
-                + "    }\n\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
     @Test
     public void testPost10() {
-        HttpProcessor processor = new HttpProcessor();
-
-        ArrayList<String> customParams = new ArrayList<>();
-        customParams.add("user_name");
+        Map<String, String> customParams = new HashMap<>();
+        putCustomParam(customParams, "user_name");
         String url = "http://www.baidu.com/";
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createPostMethodBlock("testPost10", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        
+        String sb = HttpCodeSnippetUtil.createPostSnippet("testPost10", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testPost10(String user_name) {\n"
                 + "        HashMap<String, String> map = new HashMap<>();\n"
                 + "        map.put(\"user_name\", user_name);\n"
                 + "\n"
                 + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", map, java.lang.Object.class);\n"
-                + "    }\n\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
     @Test
     public void testPost20() {
-        HttpProcessor processor = new HttpProcessor();
-
-        ArrayList<String> customParams = new ArrayList<>();
-        customParams.add("user_name");
-        customParams.add("site");
+        Map<String, String> customParams = new LinkedHashMap<>();
+        putCustomParam(customParams, "user_name");
+        putCustomParam(customParams, "site");
         String url = "http://www.baidu.com/";
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createPostMethodBlock("testPost20", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        
+        String sb = HttpCodeSnippetUtil.createPostSnippet("testPost20", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testPost20(String user_name, String site) {\n"
                 + "        HashMap<String, String> map = new HashMap<>();\n"
                 + "        map.put(\"user_name\", user_name);\n"
                 + "        map.put(\"site\", site);\n"
                 + "\n"
                 + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", map, java.lang.Object.class);\n"
-                + "    }\n"
-                + "\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
     @Test
     public void testPost11() {
-        HttpProcessor processor = new HttpProcessor();
-
-        ArrayList<String> customParams = new ArrayList<>();
-        customParams.add("user_name");
         String url = "http://www.baidu.com/?site=1";
+        
+        Map<String, String> customParams = new HashMap<>();
+        putCustomParam(customParams, "user_name");
+        
         Map<String, String> defaultParams = UrlUtil.getParams(url);
-
-        StringBuilder sb = processor.createPostMethodBlock("testPost11", "http://www.baidu.com", defaultParams, customParams, Object.class.getName());
+        
+        String sb = HttpCodeSnippetUtil.createPostSnippet("testPost11", "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
         assertEquals("    public Observable testPost11(String user_name) {\n"
                 + "        HashMap<String, String> map = new HashMap<>();\n"
                 + "        map.put(\"user_name\", user_name);\n"
                 + "        map.put(\"site\", \"1\");\n"
                 + "\n"
                 + "        return (Observable) mHttpRequest.doPost(\"http://www.baidu.com\", map, java.lang.Object.class);\n"
-                + "    }\n\n",sb.toString());
+                + "    }\n\n", sb);
     }
 
-
+    private void putCustomParam(Map<String, String> map, String param) {
+        map.put(param, param);
+    }
 
 }

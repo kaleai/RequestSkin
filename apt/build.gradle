@@ -1,0 +1,14 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'com.github.tianzhijiexian'
+
+// thanks for http://stackoverflow.com/questions/24662801/bad-class-file-magic-or-version
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+    compile project(':runtime')
+}

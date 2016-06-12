@@ -55,4 +55,9 @@ public interface APIService {
     @HttpGet(value = TEST_SIMPLE + "?club_id=54aa79d9a3101a0f75731c62&limit=0")
     Observable<ExampleHttpRequest> testApi01(String start);
 
+    @HttpGet("/search")
+    Observable testAaaaaaaa(int i, float f, String str, Object obj);
+
+    @HttpPost("/search?user=aaaa3&name=kale")
+    Observable testAaaaaaaaaaa(int i, float f, String str, Object obj);
 }

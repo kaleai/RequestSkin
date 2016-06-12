@@ -28,7 +28,6 @@ import kale.http.skin.annotation.ApiInterface;
 import kale.http.skin.annotation.HttpGet;
 import kale.http.skin.annotation.HttpPost;
 
-
 /**
  * @author Jack Tony
  * @date 2015/8/16
@@ -137,20 +136,20 @@ public class HttpProcessor extends AbstractProcessor {
         String methodName = method.getSimpleName().toString();
         String methodType = method.getReturnType().toString();
 
+        String methodParamsStr = getParamsString(method);
+
         String modelName = getModelName(url, methodType);
         Map<String, String> customParams = getCustomParams(method);
         Map<String, String> paramsFromUrl = UrlUtil.getParams(url);
         url = UrlUtil.getRealUrl(url);
 
         if (isPost) {
-            sb.append(CodeGenerator.createPostSnippet(methodName, methodType,
+            sb.append(CodeGenerator.createPostSnippet(methodType, methodName, methodParamsStr,
                     url, customParams, paramsFromUrl, modelName));
         } else {
-            sb.append(CodeGenerator.createGetSnippet(methodName, methodType,
+            sb.append(CodeGenerator.createGetSnippet(methodType, methodName, methodParamsStr,
                     url, customParams, paramsFromUrl, modelName));
         }
-
-        log("Parse method: " + method.getSimpleName() + " completed");
     }
 
     /**
@@ -160,7 +159,7 @@ public class HttpProcessor extends AbstractProcessor {
         if (modelName.contains("<")) {
             modelName = modelName.substring(modelName.indexOf("<") + 1, modelName.lastIndexOf(">"));
         }
-        if (!modelName.contains(".")) {
+        if (!modelName.contains(".")) { // com.kale.Model
             // Note:for jsonAnnotation lib
             // if this model without a package name,
             // it means the model is generate by system.We must give a package name for it.
@@ -169,28 +168,34 @@ public class HttpProcessor extends AbstractProcessor {
         return modelName;
     }
 
-    private Map<String, String> getCustomParams(ExecutableElement method) {
-        Map<String, String> customParams = new LinkedHashMap<>();
-        List<? extends VariableElement> parameters = method.getParameters();
-        for (VariableElement parameter : parameters) {
-            assertTypeIsString(parameter); // assert
-            customParams.put(parameter.getSimpleName().toString(), parameter.getSimpleName().toString());
-        }
-        return customParams;
-    }
+    private String getParamsString(ExecutableElement method) {
+        StringBuilder sb = new StringBuilder();
 
-    private void assertTypeIsString(VariableElement parameter) {
-        // Just support for param which type is string
-        String paramTypeString = parameter.getEnclosingElement().toString();
+        List<? extends VariableElement> parameters = method.getParameters();
+        if (parameters.size() == 0) {
+            return sb.toString();
+        }
+        String paramTypeString = method.toString();
         paramTypeString = paramTypeString.substring(
                 paramTypeString.indexOf("(") + 1, paramTypeString.lastIndexOf(")"));
 
-        for (String type : paramTypeString.split(",")) {
-            if (!String.class.getName().equals(type)) {
-                fatalError("Method's params must be String.-> at " + parameter.getEnclosingElement());
-                break;
-            }
+        String[] split = paramTypeString.split(",");
+        for (int i = 0; i < parameters.size(); i++) {
+            String type = split[i];
+            String paramName = parameters.get(i).getSimpleName().toString();
+            sb.append(type).append(" ").append(paramName).append(" ,");
         }
+        sb.delete(sb.length() - 2, sb.length());
+        return sb.toString();
+    }
+
+    private Map<String, String> getCustomParams(ExecutableElement method) {
+        Map<String, String> customParams = new LinkedHashMap<>();
+        for (VariableElement parameter : method.getParameters()) {
+            String paramName = parameter.getSimpleName().toString();
+            customParams.put(paramName, paramName);
+        }
+        return customParams;
     }
 
     private void createClassFile(String PACKAGE_NAME, String clsName, String content) {

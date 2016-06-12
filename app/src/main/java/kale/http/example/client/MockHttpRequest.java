@@ -2,6 +2,8 @@ package kale.http.example.client;
 
 import com.google.gson.Gson;
 
+import android.util.Log;
+
 import java.util.Map;
 
 import kale.http.skin.HttpRequest;
@@ -14,6 +16,8 @@ import rx.Observable;
  */
 public class MockHttpRequest implements HttpRequest {
 
+    private static final String TAG = "MockHttpRequest";
+    
     private static final String MOCK_JSON = "{\n"
             + "  \"error\": false,\n"
             + "  \"results\": [\n"
@@ -38,6 +42,8 @@ public class MockHttpRequest implements HttpRequest {
     @Override
     public <T> Object doGet(String url, Class<T> modelClass) {
         url = MainActivity.BASE_URL + url;
+        Log.d(TAG, "doGet: url = " + url);
+        
         return Observable.just(new Gson().fromJson(MOCK_JSON, modelClass));
     }
 }

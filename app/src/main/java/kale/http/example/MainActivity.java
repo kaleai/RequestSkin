@@ -9,12 +9,15 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.util.List;
 
 import kale.http.example.client.MockHttpRequest;
 import kale.http.example.client.OkHttpRequest;
 import kale.http.example.client.UrlConnectionRequest;
+import kale.http.example.model.Result;
 import kale.http.example.model.Root;
-import kale.http.skin.*;
+import kale.http.skin.R;
+import kale.http.skin.RequestSkin;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -34,11 +37,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         reqApiByUrlConnection();
+        requestByMockListRequest();
 
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 reqApiByOkHttp();
+            }
+        });
+    }
+
+    private void requestByMockListRequest() {
+        MockHttpApi api = RequestSkin.create(new MockHttpRequest());
+        api.testMockGetList().subscribe(new Action1<List<Result>>() {
+            @Override
+            public void call(final List<Result> resultList) {
+                Log.d(TAG, "requestByMockListRequest" + resultList.get(0).desc);
             }
         });
     }

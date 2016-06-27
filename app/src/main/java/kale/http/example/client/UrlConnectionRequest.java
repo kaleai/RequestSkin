@@ -8,6 +8,7 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
@@ -32,6 +33,11 @@ public class UrlConnectionRequest implements HttpRequest {
     }
 
     @Override
+    public <T> Object doPost(String url, Map<String, String> map, Type type) {
+        return null;
+    }
+
+    @Override
     public <T> Object doGet(String url, Class<T> modelClass) {
         url = MainActivity.BASE_URL + url;
         final Call<T> callBack = new Call<>(modelClass);
@@ -50,6 +56,11 @@ public class UrlConnectionRequest implements HttpRequest {
             }
         }.start();
         return callBack;
+    }
+
+    @Override
+    public Object doGet(String url, Type type) {
+        return null;
     }
 
     /**

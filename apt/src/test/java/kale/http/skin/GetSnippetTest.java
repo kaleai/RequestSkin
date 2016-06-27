@@ -35,7 +35,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet00", "",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet00() {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -56,7 +56,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet10", "String user_id",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet10(String user_id) {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -79,7 +79,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet21", "String user_id, String test",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet21(String user_id, String test) {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -101,7 +101,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet01", "",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet01() {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -122,7 +122,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet02", "",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet02() {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -146,7 +146,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet11", "String user_id",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet11(String user_id) {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -170,7 +170,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet21", "String user_id, String test",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet21(String user_id, String test) {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -193,7 +193,7 @@ public class GetSnippetTest {
 
         String str = CodeGenerator
                 .createGetSnippet("rx.Observable", "testGet21", "String user_id",
-                        "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                        "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testGet21(String user_id) {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"
@@ -217,7 +217,7 @@ public class GetSnippetTest {
         Map<String, String> defaultParams = UrlUtil.getParams(url);
 
         String str = CodeGenerator.createGetSnippet("rx.Observable", "testGet21", "String user_id, String test",
-                "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
         
         assertEquals("public rx.Observable testGet21(String user_id, String test) {\n"
                 + "return (rx.Observable) mHttpRequest.doGet(\"http://www.baidu.com?\"\n"

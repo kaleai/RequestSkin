@@ -51,6 +51,7 @@ public class HttpProcessor extends AbstractProcessor {
         String classBlockStr = Phrase.from("package {pkg_name};\n"
                 + "import {http_request_whole_name};\n"
                 + "import java.util.Map;\n"
+                + "import com.google.gson.reflect.TypeToken;\n"
                 + "import android.support.v4.util.ArrayMap;\n"
                 + "public class {class_name} implements {parent_class} {{\n"
                 + "    private {http_request} mHttpRequest;\n"
@@ -63,6 +64,7 @@ public class HttpProcessor extends AbstractProcessor {
                 .put("parent_class", PARENT_CLASS_NAME)
                 .put("http_request", HttpRequest.class.getSimpleName())
                 .format();
+
         sb = new StringBuilder(classBlockStr);
     }
 
@@ -154,11 +156,25 @@ public class HttpProcessor extends AbstractProcessor {
 
     /**
      * Observable<Activity> -> Activity
+     * or
+     * Observable<List<String>> -> new TypeToken<List<String>>(){}.getType()
      */
-    private String getModelName(String url, String modelName) {
+    String getModelName(String url, String modelName) {
         if (modelName.contains("<")) {
             modelName = modelName.substring(modelName.indexOf("<") + 1, modelName.lastIndexOf(">"));
+            if (modelName.contains("<")) {
+                modelName = "new TypeToken<" + modelName + ">(){}.getType()";
+            } else {
+                modelName = getModelNameByUrl(url, modelName);
+                modelName = !modelName.isEmpty() ? modelName + ".class" : "null";
+            }
+            return modelName;
+        } else {
+            return "null";
         }
+    }
+
+    private String getModelNameByUrl(String url, String modelName) {
         if (!modelName.contains(".")) { // com.kale.Model
             // Note:for jsonAnnotation lib
             // if this model without a package name,

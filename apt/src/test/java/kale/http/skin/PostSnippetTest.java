@@ -32,7 +32,7 @@ public class PostSnippetTest {
         Map<String, String> defaultParams = UrlUtil.getParams(url);
 
         String str = CodeGenerator.createPostSnippet("rx.Observable", "testPost00", "",
-                "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testPost00() {\n"
                 + "Map<String, String> map = new ArrayMap<>();\n"
@@ -52,7 +52,7 @@ public class PostSnippetTest {
         Map<String, String> defaultParams = UrlUtil.getParams(url);
 
         String str = CodeGenerator.createPostSnippet("rx.Observable", "testPost01", "",
-                "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testPost01() {\n"
                 + "Map<String, String> map = new ArrayMap<>();\n"
@@ -73,7 +73,7 @@ public class PostSnippetTest {
         Map<String, String> defaultParams = UrlUtil.getParams(url);
 
         String sb = CodeGenerator.createPostSnippet("rx.Observable", "testPost02", "",
-                "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testPost02() {\n"
                 + "Map<String, String> map = new ArrayMap<>();\n"
@@ -97,7 +97,7 @@ public class PostSnippetTest {
         Map<String, String> defaultParams = UrlUtil.getParams(url);
 
         String str = CodeGenerator.createPostSnippet("rx.Observable", "testPost10", "String user_name",
-                "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testPost10(String user_name) {\n"
                 + "Map<String, String> map = new ArrayMap<>();\n"
@@ -122,7 +122,7 @@ public class PostSnippetTest {
 
         String str = CodeGenerator.createPostSnippet("rx.Observable", "testPost20",
                 "String user_name, String site", "http://www.baidu.com",
-                customParams, defaultParams, Object.class.getName());
+                customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testPost20(String user_name, String site) {\n"
                 + "Map<String, String> map = new ArrayMap<>();\n"
@@ -146,7 +146,7 @@ public class PostSnippetTest {
         Map<String, String> defaultParams = UrlUtil.getParams(url);
 
         String str = CodeGenerator.createPostSnippet("rx.Observable", "testPost11", "String user_name",
-                "http://www.baidu.com", customParams, defaultParams, Object.class.getName());
+                "http://www.baidu.com", customParams, defaultParams, "java.lang.Object.class");
 
         assertEquals("public rx.Observable testPost11(String user_name) {\n"
                 + "Map<String, String> map = new ArrayMap<>();\n"

@@ -29,7 +29,7 @@ public class CodeGenerator {
                 .put("params_str", paramsStr)
                 .put("url", "\"" + url + "?\"")
                 .put("param_value", paramSb.toString())
-                .put("model_class", modelName != null ? modelName + ".class" : "null")
+                .put("model_class", modelName)
                 .format();
     }
 
@@ -60,7 +60,7 @@ public class CodeGenerator {
                 .put("params_str", paramsStr)
                 .put("param_value", mapSb.toString())
                 .put("url", "\"" + url + "\"")
-                .put("model_class", modelName != null ? modelName + ".class" : "null")
+                .put("model_class", modelName)
                 .format();
     }
 

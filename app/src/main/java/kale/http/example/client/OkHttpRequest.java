@@ -2,6 +2,7 @@ package kale.http.example.client;
 
 import android.util.Log;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +19,7 @@ public class OkHttpRequest implements HttpRequest {
     private static final String TAG = "OkHttpRequest";
 
     private okhttp3.OkHttpClient client;
-    
+
     public OkHttpRequest() {
         client = new okhttp3.OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
@@ -33,15 +34,25 @@ public class OkHttpRequest implements HttpRequest {
     }
 
     @Override
+    public <T> Object doPost(String url, Map<String, String> map, Type type) {
+        throw new UnsupportedOperationException("post request are not implement");
+    }
+
+    @Override
     public <T> Object doGet(String url, Class<T> modelClass) {
         url = MainActivity.BASE_URL + url;
 
         Log.d(TAG, "doGet: url = " + url);
-        
+
         final Request request = new Request.Builder()
                 .url(url)
                 .build();
 
         return client.newCall(request);
+    }
+
+    @Override
+    public Object doGet(String url, Type type) {
+        return null;
     }
 }

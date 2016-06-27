@@ -3,10 +3,10 @@ package kale.http.example;
 
 import java.util.zip.GZIPOutputStream;
 
+import kale.http.example.client.ExampleHttpRequest;
 import kale.http.skin.annotation.ApiInterface;
 import kale.http.skin.annotation.HttpGet;
 import kale.http.skin.annotation.HttpPost;
-import kale.http.example.client.ExampleHttpRequest;
 import rx.Observable;
 
 /**

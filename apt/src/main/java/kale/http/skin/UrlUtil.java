@@ -41,7 +41,7 @@ class UrlUtil {
         String strAllParam = null;
         String[] arrSplit;
 
-        strURL = strURL.trim().toLowerCase();
+        strURL = strURL.trim();
 
         arrSplit = strURL.split("[?]");
         if (strURL.length() > 1) {
@@ -58,15 +58,15 @@ class UrlUtil {
      *
      * example: "index.jsp?Action=del&id=123"，parse - > Action:del,id:123
      *
-     * @param URL url
+     * @param url url
      * @return url
      */
-    static Map<String, String> getParams(String URL) {
+    static Map<String, String> getParams(String url) {
         Map<String, String> mapRequest = new LinkedHashMap<>();
 
         String[] arrSplit;
 
-        String strUrlParam = TruncateUrlPage(URL);
+        String strUrlParam = TruncateUrlPage(url);
         if (strUrlParam == null) {
             return mapRequest;
         }

@@ -57,7 +57,7 @@ public class HttpProcessor extends AbstractProcessor {
                 + "    private {http_request} mHttpRequest;\n"
                 + "    public HttpRequestEntity({http_request} httpRequest) {{\n"
                 + "        mHttpRequest = httpRequest;\n"
-                + "    }")
+                + "    }\n")
                 .put("pkg_name", PACKAGE_NAME)
                 .put("http_request_whole_name", HttpRequest.class.getName())
                 .put("class_name", CLASS_NAME)

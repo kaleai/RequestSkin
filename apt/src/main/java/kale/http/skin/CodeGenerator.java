@@ -14,16 +14,17 @@ public class CodeGenerator {
         StringBuilder paramSb = new StringBuilder();
 
         for (Map.Entry<String, String> p : customParams.entrySet()) {
-            paramSb.append("+ \"&").append(p.getKey()).append("=\" + ").append(p.getValue()).append("\n");
+            paramSb.append("        + \"&").append(p.getKey()).append("=\" + ").append(p.getValue()).append("\n");
         }
         for (Map.Entry<String, String> p : paramsFromUrl.entrySet()) {
-            paramSb.append("+ \"&").append(p).append("\"\n");
+            paramSb.append("        + \"&").append(p).append("\"\n");
         }
 
         return Phrase
                 .from("    public {type} {name}({params_str}) {{\n"
                     + "        return ({type}) mHttpRequest.doGet({url}\n"
-                    + "        {param_value}, {model_class});\n    }\n")
+                    + "{param_value}"
+                    + "        , {model_class});\n    }\n")
                 .put("type", methodType)
                 .put("name", methodName)
                 .put("params_str", paramsStr)

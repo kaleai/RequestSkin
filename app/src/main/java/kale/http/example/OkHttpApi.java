@@ -1,7 +1,10 @@
 package kale.http.example;
 
+import java.io.File;
+
 import kale.http.skin.annotation.ApiInterface;
 import kale.http.skin.annotation.HttpGet;
+import kale.http.skin.annotation.HttpPost;
 import okhttp3.Call;
 
 /**

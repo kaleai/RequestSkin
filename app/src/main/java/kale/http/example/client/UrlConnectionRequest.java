@@ -15,6 +15,7 @@ import java.util.Map;
 
 import kale.http.skin.HttpRequest;
 import kale.http.example.MainActivity;
+import okhttp3.MultipartBody;
 import rx.Subscriber;
 
 /**
@@ -56,6 +57,11 @@ public class UrlConnectionRequest implements HttpRequest {
             }
         }.start();
         return callBack;
+    }
+
+    @Override
+    public <T> Object doPostMultipart(String url, MultipartBody body, Class<T> modelClass) {
+        return null;
     }
 
     @Override

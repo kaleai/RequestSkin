@@ -4,6 +4,8 @@ package kale.http.skin;
 import java.lang.reflect.Type;
 import java.util.Map;
 
+import okhttp3.MultipartBody;
+
 /**
  * @author Jack Tony
  * @date 2015/8/4
@@ -21,5 +23,8 @@ public interface HttpRequest {
     <T> Object doGet(final String url, final Class<T> modelClass);
 
     <T> Object doGet(final String url, final Type type);
+
+    //test
+    <T> Object doPostMultipart(final String url, MultipartBody body, final Class<T> modelClass);
 
 }

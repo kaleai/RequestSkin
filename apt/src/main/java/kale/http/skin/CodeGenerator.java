@@ -33,7 +33,6 @@ public class CodeGenerator {
                 .put("model_class", modelName)
                 .format();
     }
-
     static String createPostSnippet(String methodType, String methodName, String paramsStr,
             String url, Map<String, String> customParams, Map<String, String> paramsFromUrl, String modelName) {
 

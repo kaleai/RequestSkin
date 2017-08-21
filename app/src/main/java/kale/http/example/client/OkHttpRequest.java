@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import kale.http.skin.HttpRequest;
 import kale.http.example.MainActivity;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 
 /**
@@ -49,6 +50,11 @@ public class OkHttpRequest implements HttpRequest {
                 .build();
 
         return client.newCall(request);
+    }
+
+    @Override
+    public <T> Object doPostMultipart(String url, MultipartBody body, Class<T> modelClass) {
+        return null;
     }
 
     @Override

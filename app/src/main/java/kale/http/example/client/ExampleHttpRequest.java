@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import kale.http.skin.HttpRequest;
+import okhttp3.MultipartBody;
 import rx.Observable;
 
 /**
@@ -64,6 +65,11 @@ public class ExampleHttpRequest implements HttpRequest {
 
     @Override
     public <Model> Observable<Model> doGet(String url, Type type) {
+        return null;
+    }
+
+    @Override
+    public <T> Object doPostMultipart(String url, MultipartBody body, Class<T> modelClass) {
         return null;
     }
 

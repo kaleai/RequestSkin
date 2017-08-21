@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,6 +15,7 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -22,11 +23,21 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 
 import kale.http.skin.annotation.ApiInterface;
 import kale.http.skin.annotation.HttpGet;
 import kale.http.skin.annotation.HttpPost;
+import kale.http.skin.annotation.Multipart;
+import kale.http.skin.annotation.parameter.Field;
+import kale.http.skin.annotation.parameter.FieldMap;
+import kale.http.skin.annotation.parameter.Part;
+import kale.http.skin.annotation.parameter.PartMap;
+import kale.http.skin.annotation.parameter.Path;
+import kale.http.skin.annotation.parameter.Query;
+import kale.http.skin.annotation.parameter.QueryMap;
 
 /**
  * @author Jack Tony
@@ -42,6 +53,7 @@ public class HttpProcessor extends AbstractProcessor {
 
     private static final String PARENT_CLASS_NAME = NullInterface.class.getName();
 
+    private final Map<ExecutableElement,ServiceMethod> serviceMethodCache = new HashMap<>();
     StringBuilder sb;
 
     private Elements elementUtils;
@@ -53,6 +65,9 @@ public class HttpProcessor extends AbstractProcessor {
                 + "import java.util.Map;\n"
                 + "import com.google.gson.reflect.TypeToken;\n"
                 + "import android.support.v4.util.ArrayMap;\n"
+                + "import okhttp3.MultipartBody;\n"
+                + "import okhttp3.MediaType;\n"
+                + "import okhttp3.RequestBody;\n"
                 + "public class {class_name} implements {parent_class} {{\n"
                 + "    private {http_request} mHttpRequest;\n"
                 + "    public HttpRequestEntity({http_request} httpRequest) {{\n"
@@ -77,6 +92,9 @@ public class HttpProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (TypeElement te : annotations) {
+            if (te.getSimpleName().toString().equals(Multipart.class.getSimpleName())){
+                continue;
+            }
             for (Element e : roundEnv.getElementsAnnotatedWith(te)) {
                 if (e.getKind() == ElementKind.INTERFACE) {
                     TypeElement ele = (TypeElement) e;
@@ -88,11 +106,24 @@ public class HttpProcessor extends AbstractProcessor {
                     }
                 } else if (e.getKind() == ElementKind.METHOD) {
                     ExecutableElement method = (ExecutableElement) e;
-                    if (method.getAnnotation(HttpPost.class) != null) {
-                        handlerHttp(sb, e, method, true);
-                    } else {
-                        handlerHttp(sb, e, method, false);
+                    boolean isDefault = true;
+                    for (VariableElement ve :method.getParameters()){
+                        for (AnnotationMirror am : ve.getAnnotationMirrors()){
+                            isDefault = false;
+                        }
                     }
+                    if (isDefault){
+                        if (method.getAnnotation(HttpPost.class) != null) {
+                            handlerHttp(sb, e, method, true);
+                        } else {
+                            handlerHttp(sb, e, method, false);
+                        }
+                    }else {
+                        ServiceMethod methodResult =  loadMethod(method);
+                        sb.append(methodResult.toResult());
+                    }
+
+
                 }
             }
         }
@@ -103,10 +134,19 @@ public class HttpProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return new HashSet<>(Arrays.asList(
-                HttpGet.class.getCanonicalName(),
-                HttpPost.class.getCanonicalName(),
-                ApiInterface.class.getCanonicalName()));
+        Set<String> types = new LinkedHashSet<>();
+        types.add(HttpGet.class.getCanonicalName());
+        types.add(HttpPost.class.getCanonicalName());
+        types.add(ApiInterface.class.getCanonicalName());
+        types.add(Multipart.class.getCanonicalName());
+        types.add(Field.class.getCanonicalName());
+        types.add(FieldMap.class.getCanonicalName());
+        types.add(Part.class.getCanonicalName());
+        types.add(PartMap.class.getCanonicalName());
+        types.add(Path.class.getCanonicalName());
+        types.add(Query.class.getCanonicalName());
+        types.add(QueryMap.class.getCanonicalName());
+        return types;
     }
 
     @Override
@@ -247,8 +287,25 @@ public class HttpProcessor extends AbstractProcessor {
         }
     }
 
+    private void testlog(String msg) {
+
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, TAG + msg);
+
+    }
+
     private void fatalError(String msg) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, TAG + msg);
     }
+    private ServiceMethod loadMethod(ExecutableElement method){
+        ServiceMethod result = serviceMethodCache.get(method);
+        if (result!=null){
+            return result;
+        }else {
+            result = new ServiceMethod.Builder(method,processingEnv).build();
+            serviceMethodCache.put(method,result);
+            return result;
+        }
+    }
+
 
 }

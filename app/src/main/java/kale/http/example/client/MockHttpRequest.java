@@ -9,6 +9,7 @@ import java.util.Map;
 
 import kale.http.skin.HttpRequest;
 import kale.http.example.MainActivity;
+import okhttp3.MultipartBody;
 import rx.Observable;
 
 /**
@@ -64,6 +65,11 @@ public class MockHttpRequest implements HttpRequest {
         Log.d(TAG, "doGet: url = " + url);
 
         return Observable.just(new Gson().fromJson(MOCK_JSON, modelClass));
+    }
+
+    @Override
+    public <T> Object doPostMultipart(String url, MultipartBody body, Class<T> modelClass) {
+        return null;
     }
 
     @Override

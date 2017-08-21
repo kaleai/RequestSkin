@@ -11,4 +11,6 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile project(':runtime')
+
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
 }

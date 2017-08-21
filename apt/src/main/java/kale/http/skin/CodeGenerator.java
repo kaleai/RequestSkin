@@ -14,16 +14,17 @@ public class CodeGenerator {
         StringBuilder paramSb = new StringBuilder();
 
         for (Map.Entry<String, String> p : customParams.entrySet()) {
-            paramSb.append("+ \"&").append(p.getKey()).append("=\" + ").append(p.getValue()).append("\n");
+            paramSb.append("        + \"&").append(p.getKey()).append("=\" + ").append(p.getValue()).append("\n");
         }
         for (Map.Entry<String, String> p : paramsFromUrl.entrySet()) {
-            paramSb.append("+ \"&").append(p).append("\"\n");
+            paramSb.append("        + \"&").append(p).append("\"\n");
         }
 
-        return Phrase.from("public {type} {name}({params_str}) {{\n"
-                + "return ({type}) mHttpRequest.doGet({url}\n"
-                + "{param_value}, {model_class});}")
-
+        return Phrase
+                .from("    public {type} {name}({params_str}) {{\n"
+                    + "        return ({type}) mHttpRequest.doGet({url}\n"
+                    + "{param_value}"
+                    + "        , {model_class});\n    }\n")
                 .put("type", methodType)
                 .put("name", methodName)
                 .put("params_str", paramsStr)
@@ -32,29 +33,29 @@ public class CodeGenerator {
                 .put("model_class", modelName)
                 .format();
     }
-
     static String createPostSnippet(String methodType, String methodName, String paramsStr,
             String url, Map<String, String> customParams, Map<String, String> paramsFromUrl, String modelName) {
 
         // create map block
         StringBuilder mapSb = new StringBuilder();
         for (Map.Entry<String, String> p : customParams.entrySet()) {
-            mapSb.append(Phrase.from("map.put(\"{key}\", String.valueOf({value}));\n")
+            mapSb.append(Phrase.from("        map.put(\"{key}\", String.valueOf({value}));\n")
                     .put("key", p.getKey())
                     .put("value", p.getValue())
                     .format());
         }
         for (Map.Entry<String, String> p : paramsFromUrl.entrySet()) {
-            mapSb.append(Phrase.from("map.put(\"{key}\", \"{value}\");\n")
+            mapSb.append(Phrase.from("        map.put(\"{key}\", \"{value}\");\n")
                     .put("key", p.getKey())
                     .put("value", p.getValue())
                     .format());
         }
 
-        return Phrase.from("public {type} {name}({params_str}) {{\n"
-                + "Map<String, String> map = new ArrayMap<>();\n"
-                + "{param_value}\n"
-                + "return ({type}) mHttpRequest.doPost({url}, map, {model_class});}")
+        return Phrase
+                .from("    public {type} {name}({params_str}) {{\n"
+                    + "        Map<String, String> map = new ArrayMap<>();\n"
+                    + "{param_value}\n"
+                    + "        return ({type}) mHttpRequest.doPost({url}, map, {model_class});\n    }\n")
                 .put("type", methodType)
                 .put("name", methodName)
                 .put("params_str", paramsStr)

@@ -1,12 +1,20 @@
 package kale.http.example;
 
 
+import java.io.File;
 import java.util.zip.GZIPOutputStream;
 
 import kale.http.example.client.ExampleHttpRequest;
 import kale.http.skin.annotation.ApiInterface;
 import kale.http.skin.annotation.HttpGet;
 import kale.http.skin.annotation.HttpPost;
+import kale.http.skin.annotation.Multipart;
+import kale.http.skin.annotation.parameter.Field;
+import kale.http.skin.annotation.parameter.Part;
+import kale.http.skin.annotation.parameter.Path;
+import kale.http.skin.annotation.parameter.Query;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import rx.Observable;
 
 /**
@@ -45,7 +53,7 @@ public interface APIService {
     Observable<MainActivity> post031();
 
     @HttpPost("search?user=aaaa3&name=kale")
-    Observable post041(String create_time, String user_name);
+    Observable post041(String create_time,String user_name);
 
     @HttpPost("search?site=phoneNumber")
     Observable<String> testApi(String phone_number);
@@ -58,6 +66,11 @@ public interface APIService {
     @HttpGet("/search")
     Observable testAaaaaaaa(int i, float f, String str, Object obj);
 
+
     @HttpPost("/search?user=aaaa3&name=kale")
     Observable testAaaaaaaaaaa(int i, float f, String str, Object obj);
+
+    @Multipart
+    @HttpPost("/ylm")
+    Observable filetest(@Part(value = "name",mediaType = "image/jpg") File file, @Part MultipartBody.Part part, @Part(value = "name",filename = "img.jpg") RequestBody img);
 }
